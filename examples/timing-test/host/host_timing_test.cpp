@@ -8,7 +8,7 @@
 // Keystone
 #include <edge_call.h>
 #include <keystone.h>
-
+#include "../test_consts.h"
 
 using std::cout;
 using std::cerr;
@@ -16,8 +16,11 @@ using std::endl;
 using std::string;
 using std::thread;
 
-void test_basic_functionality(uintptr_t sharedBufferPtr);
-void spy(uintptr_t target, char* out);
+string FISH_STRING = FISH;
+string UW_STRING = UW;
+
+bool test_basic_functionality(uintptr_t sharedBufferPtr);
+void spy(uintptr_t target, uint64_t times[], int states[], int expected_writes);
 unsigned long print_string(char* str);
 void print_string_wrapper(void* buffer);
 #define OCALL_PRINT_STRING 1
@@ -27,7 +30,6 @@ main(int argc, char** argv) {
   Keystone::Enclave enclave;
   Keystone::Params params;
   params.setFreeMemSize(1024 * 1024);
-  // Difference between DEFAULT_UNTRUSTED_PTR and enclave.getSharedBuffer()?
   params.setUntrustedMem(DEFAULT_UNTRUSTED_PTR, 1024 * 1024);
   enclave.init(argv[1], argv[2], params);
   enclave.registerOcallDispatch(incoming_call_dispatch);
@@ -38,38 +40,64 @@ main(int argc, char** argv) {
       (uintptr_t)enclave.getSharedBuffer(), enclave.getSharedBufferSize());
 
   // chungmcl
-  char* spy_out = (char*)malloc(2048);
-  thread spy_thread(spy, (uintptr_t)enclave.getSharedBuffer(), spy_out);
+  void* shared_buff = enclave.getSharedBuffer();
+  uintptr_t basic_tests_expected_dst = (uintptr_t)shared_buff + ARBITRARY_OFFSET_ONE;
+  uintptr_t spy_tests_expected_dst = (uintptr_t)shared_buff + ARBITRARY_OFFSET_TWO;
+
+  uint64_t* spy_out = (uint64_t*)malloc(2048);
+  int* spy_states = (int*)malloc(2048);
+
+  for (int i = 0; i < 20; i++) {
+    *(spy_out + i) = 0;
+  }
+  thread spy_thread(spy, spy_tests_expected_dst, spy_out, spy_states, EXPECTED_WRITES);
+  
   enclave.run();
+
   spy_thread.join();
 
-  void* shared_buff = enclave.getSharedBuffer();
-  uintptr_t expected_dest = (uintptr_t)shared_buff + 100;
+  if (test_basic_functionality((uintptr_t)basic_tests_expected_dst)) {
+    cout << "Basic functionality tests pass." << endl;
+  }
 
-  int shared_buff_int = *(int*)shared_buff;
-  printf("buff param 0: %i\n", shared_buff_int);
-  printf("spy out: %s\n", spy_out);
-
-  test_basic_functionality((uintptr_t)expected_dest);
-
+  for (int i = 0; i < EXPECTED_WRITES; i++) {
+    cout << "Time point " << i << ": " << spy_out[i] << endl;
+  }
+  for (int i = 0; i < EXPECTED_WRITES; i++) {
+    cout << "pt " << i+1 << " - pt " << i << ": " << (spy_out[i+1] - spy_out[i]) / 1000000 << " ms" << endl;
+  }
+  int k = spy_out[1] - spy_out[0];
+  for (int i = 1; i < EXPECTED_WRITES; i++) {
+    cout << "(pt " << i+1 << " - pt " << i << ") - k: " << ((spy_out[i+1] - spy_out[i]) - k) / 1000000 << " ms" << endl;
+  }
+  for (int i = 0; i <= EXPECTED_WRITES; i++) {
+    cout << spy_states[i] << endl;
+  }
   return 0;
 }
 
-void test_basic_functionality(uintptr_t expected_dest) {
-  char* string = (char*)expected_dest;
-  printf("result: %s\n", string);
+void spy(uintptr_t target, uint64_t times[], int states[], int expected_writes) {
+  times[0] = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+  states[0] = *(int*)target;
+  int curr_state = states[0];
+
+  for (int i = 0; i < expected_writes; i++) {
+    while (curr_state == states[i]) {
+      curr_state = *(int*)target;
+    }
+    times[i] = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    states[i + 1] = curr_state;
+  }
 }
 
-void spy(uintptr_t target, char* out) {
-  // best way to check if memory changed? (shared buff is very big)
-  auto begin = std::chrono::high_resolution_clock::now();
-  // use a set position
-  // while (nothing changed) keep looping
-  sleep(2);
-  auto end = std::chrono::high_resolution_clock::now();
-  int64_t duration =  std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count();
-  sprintf(out, "duration (ns): %i\n", duration);
-  // sprintf(out, "test\n");
+bool test_basic_functionality(uintptr_t expected_dest) {
+  string actual = (char*)(expected_dest);
+  assert(FISH_STRING.compare(actual) == 0);
+
+  actual = (char*)(expected_dest + FISH_SIZE);
+  assert(UW_STRING.compare(actual) == 0);
+
+  return true;
 }
 
 /***

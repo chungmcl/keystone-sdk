@@ -19,6 +19,18 @@ copy_from_shared(void* dst, uintptr_t offset, size_t data_len) {
   return SYSCALL_3(SYSCALL_SHAREDCOPY, dst, offset, data_len);
 }
 
+// chungmcl
+int
+write_to_shared(void* src, uintptr_t offset, size_t data_len) {
+  return SYSCALL_3(SYSCALL_SHAREDWRITE, src, offset, data_len);
+}
+
+int
+pause_ms(unsigned long ms) {
+  return SYSCALL_1(SYSCALL_PAUSE_MS, ms);
+}
+// chungmcl
+
 int
 attest_enclave(void* report, void* data, size_t size) {
   return SYSCALL_3(SYSCALL_ATTEST_ENCLAVE, report, data, size);

@@ -14,6 +14,10 @@
 #define SYSCALL_SHAREDCOPY 1002
 #define SYSCALL_ATTEST_ENCLAVE 1003
 #define SYSCALL_GET_SEALING_KEY 1004
+// chungmcl
+#define SYSCALL_SHAREDWRITE 1005
+#define SYSCALL_PAUSE_MS 1006
+// chungmcl
 #define SYSCALL_EXIT 1101
 
 #define SYSCALL(which, arg0, arg1, arg2, arg3, arg4)           \
@@ -43,6 +47,14 @@
 
 int
 copy_from_shared(void* dst, uintptr_t offset, size_t data_len);
+
+// chungmcl
+int
+write_to_shared(void* src, uintptr_t offset, size_t data_len);
+
+int
+pause_ms(unsigned long ms);
+// chungmcl
 
 int
 ocall(
