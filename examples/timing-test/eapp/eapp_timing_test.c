@@ -36,16 +36,15 @@ int main(){
   // pause_ms(2000);
   // ocall_print_string("ocall_print_string: I'm fish 2");
 
-  pause_ms(2000);
-  // uint64_t n[] = { 0, 1, 2, 4, 8, 16, 32, 64 };
-  uint64_t n[] = { 0, 1, 2, 4, 6, 8, 10, 12 };
+  pause_ms(1000);
+  uint64_t n[] = { 1, 2, 4, 6, 8, 10, 12 };
   int i = 1;
   write_to_shared((void*)&i, (uintptr_t)ARBITRARY_OFFSET_TWO, sizeof(int));
+  i += 1;
   for (; i <= EXPECTED_WRITES; i++) {
-    loop(10000000 * n[i-1]);
+    loop(LOOP_CONST * n[i - 2]);
     write_to_shared((void*)&i, (uintptr_t)ARBITRARY_OFFSET_TWO, sizeof(int));
   }
-  // ocall_print_string("ocall_print_string: I'm fish 3");
 
   EAPP_RETURN(0);
 }

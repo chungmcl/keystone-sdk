@@ -29,4 +29,6 @@
 // includes null terminator
 #define UW_SIZE 525
 
-#define EXPECTED_WRITES 8
+#define EXPECTED_WRITES 8 // Should == len(n) + 1
+
+#define LOOP_CONST 1000000

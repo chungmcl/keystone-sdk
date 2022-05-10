@@ -51,7 +51,7 @@ main(int argc, char** argv) {
     *(spy_out + i) = 0;
   }
   thread spy_thread(spy, spy_tests_expected_dst, spy_out, spy_states, EXPECTED_WRITES);
-  
+
   enclave.run();
 
   spy_thread.join();
@@ -63,16 +63,21 @@ main(int argc, char** argv) {
   for (int i = 0; i < EXPECTED_WRITES; i++) {
     cout << "Time point " << i << ": " << spy_out[i] << endl;
   }
-  for (int i = 0; i < EXPECTED_WRITES; i++) {
-    cout << "pt " << i+1 << " - pt " << i << ": " << (spy_out[i+1] - spy_out[i]) / 1000000 << " ms" << endl;
+  for (int i = 0; i < EXPECTED_WRITES-1; i++) {
+    cout << "pt " << i+1 << " - pt " << i << ": ~" << (spy_out[i+1] - spy_out[i]) / 1000000 << " ms" << endl;
   }
-  int k = spy_out[1] - spy_out[0];
-  for (int i = 1; i < EXPECTED_WRITES; i++) {
-    cout << "(pt " << i+1 << " - pt " << i << ") - k: " << ((spy_out[i+1] - spy_out[i]) - k) / 1000000 << " ms" << endl;
-  }
+  cout << "Observed states: ";
   for (int i = 0; i <= EXPECTED_WRITES; i++) {
-    cout << spy_states[i] << endl;
+    cout << spy_states[i] << ", ";
   }
+  cout << endl;
+  int loop_const_time = (spy_out[1] - spy_out[0]);
+  cout << LOOP_CONST << " loops took ~" << loop_const_time / 1000000 << " ms" << endl;
+  for (int i = 1; i < EXPECTED_WRITES-1; i++) {
+    int factor = (spy_out[i+1] - spy_out[i]) / loop_const_time;
+    cout << "Loop " << i << " looped ~" << factor * LOOP_CONST << " times." << endl;
+  }
+
   return 0;
 }
 
