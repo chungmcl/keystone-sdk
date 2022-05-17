@@ -33,8 +33,6 @@ int main() {
   char* uw = UW;
   write_to_shared((void*)fish, (uintptr_t)ARBITRARY_OFFSET_ONE, FISH_SIZE);
   write_to_shared((void*)uw, (uintptr_t)ARBITRARY_OFFSET_ONE + FISH_SIZE, UW_SIZE);
-  // pause_ms(2000);
-  // ocall_print_string("ocall_print_string: I'm fish 2");
 
   pause_ms(1000);
   // uint64_t n[] = { 1, 2, 4, 6, 8, 10, 12 };
@@ -46,10 +44,8 @@ int main() {
     loop(LOOP_CONST * n[i - 2]);
     write_to_shared((void*)&i, (uintptr_t)ARBITRARY_OFFSET_TWO, sizeof(int));
   }
-  // pause_ms(2000); // necessary for some reason? "7" is not observed by spy
-  // write_to_shared((void*)fish, (uintptr_t)ARBITRARY_OFFSET_ONE, FISH_SIZE);
   
-  EAPP_RETURN(0);
+  EAPP_RETURN(0); // Will cause RUNTIME_SYSCALL_EXIT condition in SM
 }
 
 void loop(uint64_t u) {

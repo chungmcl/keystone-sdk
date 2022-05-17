@@ -90,7 +90,7 @@ void spy(uintptr_t target, uint64_t times[], int states[], int expected_writes) 
     while (curr_state == states[i]) {
       curr_state = *(int*)target;
     }
-    cout << "observed: " << curr_state << endl;
+    // cout << "observed: " << curr_state << endl;
     times[i] = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     states[i + 1] = curr_state;
   }
