@@ -27,7 +27,7 @@ void loop(unsigned long u);
 // We want to run a "failed" test (one which DOESN'T use the timing_buffer)
 // Use that as a "benchmark" to compare a "successful" test against (show that the timing_buffer does indeed hide)
 
-int main(){
+int main() {
   ocall_print_string("ocall_print_string: I'm fish");
   char* fish = FISH;
   char* uw = UW;
@@ -37,7 +37,8 @@ int main(){
   // ocall_print_string("ocall_print_string: I'm fish 2");
 
   pause_ms(1000);
-  uint64_t n[] = { 1, 2, 4, 6, 8, 10, 12 };
+  // uint64_t n[] = { 1, 2, 4, 6, 8, 10, 12 };
+  uint64_t n[] = { 1, 2, 4, 8, 16, 32, 64 };
   int i = 1;
   write_to_shared((void*)&i, (uintptr_t)ARBITRARY_OFFSET_TWO, sizeof(int));
   i += 1;
@@ -45,7 +46,9 @@ int main(){
     loop(LOOP_CONST * n[i - 2]);
     write_to_shared((void*)&i, (uintptr_t)ARBITRARY_OFFSET_TWO, sizeof(int));
   }
-
+  // pause_ms(2000); // necessary for some reason? "7" is not observed by spy
+  // write_to_shared((void*)fish, (uintptr_t)ARBITRARY_OFFSET_ONE, FISH_SIZE);
+  
   EAPP_RETURN(0);
 }
 
