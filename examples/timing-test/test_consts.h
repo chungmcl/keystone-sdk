@@ -1,4 +1,4 @@
-#define ARBITRARY_OFFSET_ONE 10
+#define ARBITRARY_OFFSET_ONE 20
 #define ARBITRARY_OFFSET_TWO 700
 
 #define FISH "I'm fish from eapp\n\
@@ -31,4 +31,5 @@
 
 #define EXPECTED_WRITES 8 // Should == len(n) + 1
 
-#define LOOP_CONST 10000000
+// #define LOOP_CONST 10000000
+ #define LOOP_CONST 9500000

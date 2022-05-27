@@ -29,6 +29,7 @@ void loop(unsigned long u);
 
 int main() {
   ocall_print_string("ocall_print_string: I'm fish");
+  pause_ms(4000);
   char* fish = FISH;
   char* uw = UW;
   write_to_shared((void*)fish, (uintptr_t)ARBITRARY_OFFSET_ONE, FISH_SIZE);
