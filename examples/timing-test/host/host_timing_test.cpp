@@ -64,17 +64,17 @@ main(int argc, char** argv) {
     cout << "Time point " << i << ": " << spy_out[i] << endl;
   }
   for (int i = 0; i < EXPECTED_WRITES-1; i++) {
-    cout << "pt " << i+1 << " - pt " << i << ": ~" << (spy_out[i+1] - spy_out[i]) / 1000000 << " ms" << endl;
+    cout << "pt " << i+1 << " - pt " << i << ": ~" << (spy_out[i+1] - spy_out[i]) / 1000000.0 << " ms" << endl;
   }
   cout << "Observed states: ";
   for (int i = 0; i <= EXPECTED_WRITES; i++) {
     cout << spy_states[i] << ", ";
   }
   cout << endl;
-  int loop_const_time = (spy_out[1] - spy_out[0]);
-  cout << LOOP_CONST << " loops took ~" << loop_const_time / 1000000 << " ms" << endl;
+  float loop_const_time = (spy_out[1] - spy_out[0]);
+  cout << LOOP_CONST << " loops took ~" << loop_const_time / 1000000.0 << " ms" << endl;
   for (int i = 1; i < EXPECTED_WRITES-1; i++) {
-    int factor = (spy_out[i+1] - spy_out[i]) / loop_const_time;
+    float factor = (spy_out[i+1] - spy_out[i]) / loop_const_time;
     cout << "Loop " << i << " looped ~" << factor * LOOP_CONST << " times." << endl;
   }
 
@@ -84,15 +84,16 @@ main(int argc, char** argv) {
 void spy(uintptr_t target, uint64_t times[], int states[], int expected_writes) {
   times[0] = std::chrono::high_resolution_clock::now().time_since_epoch().count();
   states[0] = *(int*)target;
-  int curr_state = states[0];
+  int curr_state = 0;
 
-  for (int i = 0; i < expected_writes; i++) {
-    while (curr_state == states[i]) {
-      curr_state = *(int*)target;
+  for (int i = 1; i <= expected_writes; i++) {
+    while (curr_state == 0) {
+      curr_state = *((int*)(target) + (i-1));
     }
     // cout << "observed: " << curr_state << endl;
-    times[i] = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-    states[i + 1] = curr_state;
+    times[i-1] = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    states[i] = curr_state;
+    curr_state = 0;
   }
 }
 

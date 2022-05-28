@@ -39,11 +39,12 @@ int main() {
   // uint64_t n[] = { 1, 2, 4, 6, 8, 10, 12 };
   uint64_t n[] = { 1, 2, 4, 8, 16, 32, 64 };
   int i = 1;
-  write_to_shared((void*)&i, (uintptr_t)ARBITRARY_OFFSET_TWO, sizeof(int));
+  write_to_shared((void*)&i, (uintptr_t)ARBITRARY_OFFSET_TWO + (sizeof(int) * (i-1)), sizeof(int));
   i += 1;
-  for (; i <= EXPECTED_WRITES; i++) {
+  while (i <= EXPECTED_WRITES) {
     loop(LOOP_CONST * n[i - 2]);
-    write_to_shared((void*)&i, (uintptr_t)ARBITRARY_OFFSET_TWO, sizeof(int));
+    write_to_shared((void*)&i, (uintptr_t)ARBITRARY_OFFSET_TWO + (sizeof(int) * (i-1)), sizeof(int));
+    i += 1;
   }
   
   EAPP_RETURN(0); // Will cause RUNTIME_SYSCALL_EXIT condition in SM
@@ -58,6 +59,6 @@ void loop(uint64_t u) {
 
 unsigned long ocall_print_string(char* string){
   unsigned long retval;
-  ocall(OCALL_PRINT_STRING, string, strlen(string)+1, &retval ,sizeof(unsigned long));
+  ocall(OCALL_PRINT_STRING, string, strlen(string)+1, &retval, sizeof(unsigned long));
   return retval;
 }

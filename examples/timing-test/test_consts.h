@@ -32,4 +32,5 @@
 #define EXPECTED_WRITES 8 // Should == len(n) + 1
 
 // #define LOOP_CONST 10000000
- #define LOOP_CONST 9500000
+// #define LOOP_CONST 9500000
+#define LOOP_CONST 100000
