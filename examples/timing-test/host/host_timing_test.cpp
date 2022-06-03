@@ -64,7 +64,7 @@ main(int argc, char** argv) {
     cout << "Time point " << i << ": " << spy_out[i] << endl;
   }
   for (int i = 0; i < EXPECTED_WRITES-1; i++) {
-    cout << "pt " << i+1 << " - pt " << i << ": ~" << (spy_out[i+1] - spy_out[i]) / 1000000.0 << " ms" << endl;
+    cout << "pt " << i+1 << " - pt " << i << ": ~ " << (spy_out[i+1] - spy_out[i]) / 1000000.0 << " ms" << endl;
   }
   cout << "Observed states: ";
   for (int i = 0; i <= EXPECTED_WRITES; i++) {
@@ -72,10 +72,10 @@ main(int argc, char** argv) {
   }
   cout << endl;
   float loop_const_time = (spy_out[1] - spy_out[0]);
-  cout << LOOP_CONST << " loops took ~" << loop_const_time / 1000000.0 << " ms" << endl;
+  cout << LOOP_CONST << " loops took ~ " << loop_const_time / 1000000.0 << " ms" << endl;
   for (int i = 1; i < EXPECTED_WRITES-1; i++) {
     float factor = (spy_out[i+1] - spy_out[i]) / loop_const_time;
-    cout << "Loop " << i << " looped ~" << factor * LOOP_CONST << " times." << endl;
+    cout << "Loop " << i << " looped ~ " << factor * LOOP_CONST << " times." << endl;
   }
 
   return 0;
