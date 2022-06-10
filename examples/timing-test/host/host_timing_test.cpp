@@ -21,12 +21,41 @@ string UW_STRING = UW;
 
 bool test_basic_functionality(uintptr_t sharedBufferPtr);
 void spy(uintptr_t target, uint64_t times[], int states[], int expected_writes);
+uint64_t* test_fuzzing(char** argv);
 unsigned long print_string(char* str);
 void print_string_wrapper(void* buffer);
 #define OCALL_PRINT_STRING 1
 
 int
 main(int argc, char** argv) {
+  for (int i = 0; i < 5; i++) {
+    cout << "TRIAL " << i << endl;
+    cout << "-------------------------------------------------" << endl;
+    uint64_t* spy_out = test_fuzzing(argv);
+
+    for (int i = 0; i < EXPECTED_WRITES; i++) {
+    cout << "Time point " << i << ": " << spy_out[i] << endl;
+    }
+    for (int i = 0; i < EXPECTED_WRITES-1; i++) {
+      cout << "pt " << i+1 << " - pt " << i << ": ~" << (spy_out[i+1] - spy_out[i]) / 1000000.0 << " ms" << endl;
+    }
+    
+    cout << endl;
+    float loop_const_time = (spy_out[1] - spy_out[0]);
+    cout << LOOP_CONST << " loops took ~" << loop_const_time / 1000000.0 << " ms" << endl;
+    for (int i = 1; i < EXPECTED_WRITES-1; i++) {
+      float factor = (spy_out[i+1] - spy_out[i]) / loop_const_time;
+      cout << "Loop " << i << " looped ~" << factor * LOOP_CONST << " times." << endl;
+    }
+
+    cout << "-------------------------------------------------" << endl << endl;
+    free(spy_out);
+  }
+
+  return 0;
+}
+
+uint64_t* test_fuzzing(char** argv) {
   Keystone::Enclave enclave;
   Keystone::Params params;
   params.setFreeMemSize(1024 * 1024);
@@ -37,48 +66,35 @@ main(int argc, char** argv) {
      enclave. */
   register_call(OCALL_PRINT_STRING, print_string_wrapper);
   edge_call_init_internals(
-      (uintptr_t)enclave.getSharedBuffer(), enclave.getSharedBufferSize());
+    (uintptr_t)enclave.getSharedBuffer(), enclave.getSharedBufferSize());
 
-  // chungmcl
   void* shared_buff = enclave.getSharedBuffer();
+  memset(shared_buff, 0x0, 1024 * 1024);
+
   uintptr_t basic_tests_expected_dst = (uintptr_t)shared_buff + ARBITRARY_OFFSET_ONE;
   uintptr_t spy_tests_expected_dst = (uintptr_t)shared_buff + ARBITRARY_OFFSET_TWO;
 
   uint64_t* spy_out = (uint64_t*)malloc(2048);
   int* spy_states = (int*)malloc(2048);
 
-  for (int i = 0; i < 20; i++) {
-    *(spy_out + i) = 0;
-  }
+  memset(spy_out, 0x0, 2048);
+  memset(spy_states, 0x0, 2048);
+
   thread spy_thread(spy, spy_tests_expected_dst, spy_out, spy_states, EXPECTED_WRITES);
 
   enclave.run();
 
   spy_thread.join();
 
-  if (test_basic_functionality((uintptr_t)basic_tests_expected_dst)) {
-    cout << "Basic functionality tests pass." << endl;
-  }
-
-  for (int i = 0; i < EXPECTED_WRITES; i++) {
-    cout << "Time point " << i << ": " << spy_out[i] << endl;
-  }
-  for (int i = 0; i < EXPECTED_WRITES-1; i++) {
-    cout << "pt " << i+1 << " - pt " << i << ": ~" << (spy_out[i+1] - spy_out[i]) / 1000000.0 << " ms" << endl;
-  }
-  cout << "Observed states: ";
-  for (int i = 0; i <= EXPECTED_WRITES; i++) {
-    cout << spy_states[i] << ", ";
-  }
-  cout << endl;
-  float loop_const_time = (spy_out[1] - spy_out[0]);
-  cout << LOOP_CONST << " loops took ~" << loop_const_time / 1000000.0 << " ms" << endl;
-  for (int i = 1; i < EXPECTED_WRITES-1; i++) {
-    float factor = (spy_out[i+1] - spy_out[i]) / loop_const_time;
-    cout << "Loop " << i << " looped ~" << factor * LOOP_CONST << " times." << endl;
-  }
-
-  return 0;
+  // if (test_basic_functionality((uintptr_t)basic_tests_expected_dst)) {
+  //   cout << "Basic functionality tests pass." << endl;
+  // }
+  // cout << "Observed states: ";
+  // for (int i = 0; i <= EXPECTED_WRITES; i++) {
+  //   cout << spy_states[i] << ", ";
+  // }
+  free(spy_states);
+  return spy_out;
 }
 
 void spy(uintptr_t target, uint64_t times[], int states[], int expected_writes) {
