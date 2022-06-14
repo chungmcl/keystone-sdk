@@ -28,6 +28,7 @@ void loop(unsigned long u);
 // Use that as a "benchmark" to compare a "successful" test against (show that the timing_buffer does indeed hide)
 
 int main() {
+  // Basic functionality tests
   ocall_print_string("ocall_print_string: I'm fish");
   pause_ms(4000);
   char* fish = FISH;
@@ -35,6 +36,7 @@ int main() {
   write_to_shared((void*)fish, (uintptr_t)ARBITRARY_OFFSET_ONE, FISH_SIZE);
   write_to_shared((void*)uw, (uintptr_t)ARBITRARY_OFFSET_ONE + FISH_SIZE, UW_SIZE);
 
+  // Fuzzing tests
   pause_ms(1000);
   // uint64_t n[] = { 1, 2, 4, 6, 8, 10, 12 };
   uint64_t n[] = { 1, 2, 4, 8, 16, 32, 64 };

@@ -86,13 +86,13 @@ uint64_t* test_fuzzing(char** argv) {
 
   spy_thread.join();
 
-  // if (test_basic_functionality((uintptr_t)basic_tests_expected_dst)) {
-  //   cout << "Basic functionality tests pass." << endl;
-  // }
-  // cout << "Observed states: ";
-  // for (int i = 0; i <= EXPECTED_WRITES; i++) {
-  //   cout << spy_states[i] << ", ";
-  // }
+  if (test_basic_functionality((uintptr_t)basic_tests_expected_dst)) {
+    cout << "Basic functionality tests pass." << endl;
+  }
+  cout << "Observed states: ";
+  for (int i = 0; i <= EXPECTED_WRITES; i++) {
+    cout << spy_states[i] << ", ";
+  }
   free(spy_states);
   return spy_out;
 }
